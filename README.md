@@ -1,2 +1,2 @@
-# Multi-State-HHM-For-Market-Regime-Detection
+# Multi-State-HMM-For-Market-Regime-Detection
 For this project, we will start by collecting portfolio information from Yahoo finance through yfinance and pandas in data.py. This will be stored as a csv file in the current folder. And this csv data file would be further processed in data.py to make it useful for the actual model building. Output this as another csv file that can be fed into HMM model in PyDTMC. (still need to know the data structure needed for the pydtmc library).
