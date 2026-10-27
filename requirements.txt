@@ -1,0 +1,6 @@
+yfinance>=1.7.0
+pandas>=3.1.0
+numpy>=2.4.6
+matplotlib>=3.7.3
+pydtmc>=8.7.0
+scipy>=1.17.1
