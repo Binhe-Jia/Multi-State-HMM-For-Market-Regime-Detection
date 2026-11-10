@@ -333,10 +333,12 @@ def main() -> None:
 
     possible_states = [
         "low_risk",
+        "medium_risk",
         "high_risk",
     ]
 
     possible_symbols = [
+        "death",
         "very_negative",
         "negative",
         "neutral",
