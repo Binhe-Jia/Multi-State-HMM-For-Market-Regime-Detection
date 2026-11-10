@@ -240,9 +240,6 @@ def discretize_market_returns(
     return observations
 
     
-
-
-
 def save_processed_data(
     output_dir: str | Path,
     close_prices: pd.DataFrame,
@@ -416,24 +413,6 @@ def main() -> None:
             normalize=True,
         ).sort_index()
     )
-
-    processed_dir = project_root / "data" / "processed"
-
-    saved_files = save_processed_data(
-        output_dir=processed_dir,
-        close_prices=close_prices,
-        log_returns=log_returns,
-        training_returns=training_returns,
-        test_returns=test_returns,
-        bin_edges=bin_edges,
-        training_symbols=training_symbols,
-        test_symbols=test_symbols,
-    )
-
-    print("\nSaved processed files:")
-
-    for name, path in saved_files.items():
-        print(f"{name}: {path}")
 
 
 if __name__ == "__main__":
