@@ -3,28 +3,53 @@
 This module will connect the focused modules without placing analysis logic in the
 notebook. The notebook can then load saved tables and figures for interpretation.
 """
-from src.data import (
-    load_portfolio_input,
-    download_market_data,
-    extract_close_prices,
-    validate_downloaded_data,
-    calculate_log_return,
-    extract_market_returns,
-    split_time_series,
-    fit_return_bins,
-    discretize_market_returns,
-    save_processed_data,
-)
-
-from src.hmm import (
-    create_initial_transition_guess,
-    create_initial_emission_guess,
-    fit_discrete_hmm,
-    decode_observations,
-    save_hmm_outputs,
-)
 from pathlib import Path
 import pandas as pd
+
+if __package__:
+    from .data import (
+        load_portfolio_input,
+        download_market_data,
+        extract_close_prices,
+        validate_downloaded_data,
+        calculate_log_return,
+        extract_market_returns,
+        split_time_series,
+        fit_return_bins,
+        discretize_market_returns,
+        save_processed_data,
+    )
+
+    from .hmm import (
+        create_initial_transition_guess,
+        create_initial_emission_guess,
+        fit_discrete_hmm,
+        decode_observations,
+        save_hmm_outputs,
+        save_hmm_visualization,
+    )
+else:
+    from data import (
+        load_portfolio_input,
+        download_market_data,
+        extract_close_prices,
+        validate_downloaded_data,
+        calculate_log_return,
+        extract_market_returns,
+        split_time_series,
+        fit_return_bins,
+        discretize_market_returns,
+        save_processed_data,
+    )
+
+    from hmm import (
+        create_initial_transition_guess,
+        create_initial_emission_guess,
+        fit_discrete_hmm,
+        decode_observations,
+        save_hmm_outputs,
+        save_hmm_visualization,
+    )
 
 
 def run_pipeline(
@@ -73,7 +98,10 @@ def run_pipeline(
     8. Create the initial transition matrix with
        create_initial_transition_guess(len(possible_states)). Create the
        initial emission matrix with
-       create_initial_emission_guess(possible_symbols).
+       create_initial_emission_guess(possible_symbols,
+       len(possible_states)). State names must be ordered from lower risk to
+       higher risk, while symbols must be ordered from the most negative to
+       the most positive return category.
 
     9. Fit the model with fit_discrete_hmm(). Pass only training_symbols to
        the fitting function together with the state names, symbol names, and
@@ -182,7 +210,8 @@ def run_pipeline(
     )
 
     emission_guess = create_initial_emission_guess(
-        possible_symbols
+        possible_symbols,
+        number_of_states=len(possible_states),
     )
 
     model = fit_discrete_hmm(
@@ -242,6 +271,13 @@ def run_pipeline(
         decoded_results=decoded_results,
     )
 
+    visualization_path = save_hmm_visualization(
+        model=model,
+        output_path=(
+            output_root / "outputs" / "figures" / "hmm_model.png"
+        ),
+    )
+
     return {
         "data": {
             "portfolio": portfolio_df,
@@ -272,6 +308,7 @@ def run_pipeline(
         "saved_paths": {
             "data": data_paths,
             "hmm": hmm_paths,
+            "visualization": visualization_path,
         },
     }
 

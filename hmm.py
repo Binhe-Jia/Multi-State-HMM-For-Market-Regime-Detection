@@ -1,4 +1,5 @@
 from pydtmc import MarkovChain, HiddenMarkovModel
+from pydtmc.plotting import plot_graph
 from pathlib import Path
 import json
 import networkx
@@ -88,28 +89,58 @@ def create_initial_transition_guess(
 
 def create_initial_emission_guess(
     possible_symbols: list[str],
+    number_of_states: int = 2,
 ) -> np.ndarray:
     """
-    Create initial emission probabilities for a two-state model.
+    Create initial emission probabilities for flexible model dimensions.
+
+    Hidden states must be ordered from lower risk to higher risk.
+    Observation symbols must be ordered from the most negative return
+    category to the most positive return category.
     """
-    expected_symbols = [
-        "very_negative",
-        "negative",
-        "neutral",
-        "positive",
-        "very_positive",
-    ]
-    if possible_symbols != expected_symbols:
-        raise ValueError("Possible symbols must use the expected order.")
-    raw_weights = np.array(
-        [
-            [1, 2, 4, 2, 1],
-            [4, 2, 1, 2, 4],
-        ],
-        dtype=float,
+    if number_of_states < 2:
+        raise ValueError("At least two hidden states are required.")
+    if len(possible_symbols) < 2:
+        raise ValueError("At least two observation symbols are required.")
+    if len(possible_symbols) != len(set(possible_symbols)):
+        raise ValueError("Possible-symbol list contains duplicates.")
+
+    number_of_symbols = len(possible_symbols)
+
+    observation_positions = np.linspace(
+        -1.0,
+        1.0,
+        number_of_symbols,
     )
-    emission_guess = (raw_weights/ raw_weights.sum(axis=1, keepdims=True))
-    validate_probability_matrix(emission_guess,expected_shape=(2, len(possible_symbols)),matrix_name="Emission matrix")
+    observation_risk = np.abs(observation_positions)
+    state_risk = np.linspace(
+        0.0,
+        1.0,
+        number_of_states,
+    )
+
+    distances = (
+        state_risk[:, np.newaxis]
+        - observation_risk[np.newaxis, :]
+    )
+    raw_weights = np.exp(
+        -(distances ** 2) / (2.0 * 0.5 ** 2)
+    )
+
+    emission_guess = (
+        raw_weights
+        / raw_weights.sum(axis=1, keepdims=True)
+    )
+
+    validate_probability_matrix(
+        emission_guess,
+        expected_shape=(
+            number_of_states,
+            number_of_symbols,
+        ),
+        matrix_name="Emission matrix",
+    )
+
     return emission_guess
 
 
@@ -317,3 +348,44 @@ def save_hmm_outputs(
         json.dump(summary, file, indent=4)
 
     return output_paths
+
+
+def save_hmm_visualization(
+    model: HiddenMarkovModel,
+    output_path: str | Path,
+    dpi: int = 200,
+) -> Path:
+    """
+    Save PyDTMC's directed-graph visualization of a fitted HMM.
+    """
+    output_path = Path(output_path)
+
+    if output_path.suffix == "":
+        output_path = output_path.with_suffix(".png")
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    interactive_mode = plt.isinteractive()
+    plt.ioff()
+
+    try:
+        figure, _ = plot_graph(
+            model,
+            nodes_color=True,
+            nodes_shape=True,
+            edges_label=True,
+            force_standard=True,
+            dpi=dpi,
+        )
+        figure.set_size_inches(14, 8)
+        figure.savefig(
+            output_path,
+            dpi=dpi,
+            bbox_inches="tight",
+        )
+        plt.close(figure)
+    finally:
+        if interactive_mode:
+            plt.ion()
+
+    return output_path
