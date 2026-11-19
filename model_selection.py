@@ -24,11 +24,6 @@ Design (fixed before looking at any test-period result)
   BIC on the TRAINING period only (AIC and log likelihood are also reported).
   The test-period (2024+) log likelihood is reported for information only and
   is NOT used to choose, following rule 6 of the project outline.
-* Responsibility "check stability across initializations": convergence
-  rate, spread of training log likelihoods, and the largest difference in
-  any matrix entry between the best fit and the other near-best fits.
-  (Stability across sample periods is not assessed, because this design
-  deliberately uses a single split date.)
 
 Initial-state distribution
 --------------------------
@@ -65,6 +60,19 @@ if __package__:
         validate_probability_matrix,
     )
     from .pipeline import run_pipeline
+    from .config import (
+        MARKET_TICKER,
+        INTERVAL,
+        PERIOD,
+        SPLIT_DATE, 
+        POSSIBLE_SYMBOLS,
+        CANDIDATE_MODELS,
+        N_RANDOM_RESTARTS,
+        RANDOM_SEED,
+        STAY_PROBABILITY_RANGE,
+        EMISSION_CONCENTRATION,
+        LOG_LIKELIHOOD_TOLERANCE,
+    )   
 else:
     from hmm import (
         decode_observations,
@@ -72,35 +80,19 @@ else:
         validate_probability_matrix,
     )
     from pipeline import run_pipeline
-
-
-# ---------------------------------------------------------------------------
-# Settings (move to config.py once it exists)
-# ---------------------------------------------------------------------------
-
-MARKET_TICKER = "^GSPTSE"
-INTERVAL = "1d"
-PERIOD = "10y"
-SPLIT_DATE = "2024-01-01"
-
-POSSIBLE_SYMBOLS = [
-    "very_negative",
-    "negative",
-    "neutral",
-    "positive",
-    "very_positive",
-]
-
-CANDIDATE_MODELS: dict[int, list[str]] = {
-    2: ["low", "high"],
-    3: ["low", "medium", "high"],
-}
-
-N_RANDOM_RESTARTS = 5          # random starts per model, on top of the pipeline fit
-RANDOM_SEED = 348
-STAY_PROBABILITY_RANGE = (0.80, 0.98)
-EMISSION_CONCENTRATION = 2.0
-LOG_LIKELIHOOD_TOLERANCE = 1.0  # fits within this of the best count as "near-best"
+    from config import (
+        MARKET_TICKER,
+        INTERVAL,
+        PERIOD,
+        SPLIT_DATE, 
+        POSSIBLE_SYMBOLS,
+        CANDIDATE_MODELS,
+        N_RANDOM_RESTARTS,
+        RANDOM_SEED,
+        STAY_PROBABILITY_RANGE,
+        EMISSION_CONCENTRATION,
+        LOG_LIKELIHOOD_TOLERANCE,
+    )   
 
 
 # ---------------------------------------------------------------------------
